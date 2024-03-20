@@ -8,17 +8,17 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class Spaceship extends Linkable {
-    public static final double THRUST = 0.000000000002;
+    public static final double THRUST = 0.00000000000002;
     public static final double ROT_THRUST = 0.000000000001;
     public static final double ROT_BRAKES = 1;
     public static final Point[] DRAW_LOCS = {new Point(1.06066, 0), new Point(-0.43934, 0.5), new Point(-0.43934, -0.5)};
     private static final double DRAW_SIZE = 10;
-    private static final int POINT_FREQ = 100000;
-    private static final double PATH_SEG_LENGTH_MARGIN = 1;
+    private static final int POINT_FREQ = 200000;
+    private static final double PATH_SEG_LENGTH_MARGIN = 2;
     private static final int MAX_PATH_SEGS = 1000000;
 
     private final FollowCamera cam;
-    private Point prevSpd;
+    private Point prevAccel;
     private final Point spd;
     private double rotSpd;
     private List<Point> locs;
@@ -36,6 +36,7 @@ public class Spaceship extends Linkable {
         locs.add(this.copy());
         locs.add(this);
         gravAccel = new Point();
+        prevAccel = new Point();
         ppCooldown = POINT_FREQ;
     }
 
@@ -49,8 +50,8 @@ public class Spaceship extends Linkable {
 
     @Override
     public boolean update() {
-     //   System.out.println("update ship");
-        prevSpd = spd.copy();
+        Point accel = gravAccel;
+
         if(getKey(KeyEvent.VK_LEFT)) {
             rotSpd += ROT_THRUST * dt();
         }
@@ -58,13 +59,14 @@ public class Spaceship extends Linkable {
             rotSpd -= ROT_THRUST * dt();
         }
         if(getKey(KeyEvent.VK_UP)) {
-            spd.add(Math.cos(getAng()) * THRUST * dt(), -Math.sin(getAng()) * THRUST * dt());
+            accel.add(Math.cos(getAng()) * THRUST * dt(), -Math.sin(getAng()) * THRUST * dt());
         }
 
-        spd.add(gravAccel.copy().mult(dt()));
+        add(dt() * (spd.X() + 0.5 * prevAccel.X() * dt()), dt() * (spd.Y() + 0.5 * prevAccel.Y() * dt()));
+        spd.add(0.5 * dt() * (prevAccel.X() + accel.X()), 0.5 * dt() * (prevAccel.Y() + accel.Y()));
+        prevAccel = accel;
 
         setAng(getAng() + rotSpd * dt());
-        add(spd.X()* dt(), spd.Y() * dt());
         rotSpd *= ROT_BRAKES;
 
 
@@ -80,11 +82,7 @@ public class Spaceship extends Linkable {
         return false;
     }
 
-    public Point getAccel() {
-        return spd.copy().sub(prevSpd);
-    }
-
-    @Override
+     @Override
     public void onFirstLink() {
         addKeystrokeFunction((KeyEvent e) -> {
             switch(e.getKeyCode()) {
