@@ -157,7 +157,7 @@ public class SpaceTree extends Linkable {
         private double totalMass;
 
         public SpaceNode() {
-            this(-5, new Point(-125, -125), new ArrayList<>(), null);
+            this(-7, new Point(1, 1), new ArrayList<>(), null);
         }
 
         public SpaceNode(int depth, Point min, List<SpaceBody> toAdd, SpaceNode parent) {
